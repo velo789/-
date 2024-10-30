@@ -55,7 +55,7 @@ def lambda_handler(event, context):
                                 table.put_item(
                                     Item={
                                         'Policy_id': row['Policy_id'],  # CSV에서 직접 Policy_id 사용
-                                        'Policy': row['Policy'],  # 필드명 수정
+                                        'Policy_name': row['Policy'],  # 필드명 수정
                                         'Policy_URL': row['Policy URL'],  # 필드명 수정
                                         'Year': year,  # 정수형으로 변환된 Year 필드
                                         'Jurisdiction': row['Jurisdiction'],
