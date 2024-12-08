@@ -1,18 +1,25 @@
+'''
+이 코드는 수집된 정책 데이터와 탄소 분석 모델 데이터를 정제하는 코드입니다.
+'''
 import pandas as pd
 import csv
 
+# 파일에서 인구 데이터를 로드하고 클린업하는 함수
 def load_and_clean_population_data(filepath):
     population_data = pd.read_csv(filepath)
+    # 불필요한 열 제거
     if 'Unnamed: 0' in population_data.columns:
         population_data = population_data.drop(columns=['Unnamed: 0'])
     if '0' in population_data.columns:
         population_data = population_data.drop(columns=['0'])
+    # 고유 국가 이름에 ID를 매핑
     unique_countries = population_data['Country Name'].unique()
     new_country_mapping = {country: i + 1 for i, country in enumerate(unique_countries)}
     population_data['Country_id'] = population_data['Country Name'].map(new_country_mapping)
     population_data['Country_id'] = population_data['Country_id'].astype(int)
     return population_data
 
+# 인구 데이터를 피벗 해제(melt)하여 정렬하는 함수
 def melt_population_data(population_data):
     population_melted = pd.melt(population_data, id_vars=['Country Name', 'Country Code', 'Country_id'],
                                 value_vars=population_data.columns[4:],
@@ -20,9 +27,11 @@ def melt_population_data(population_data):
     population_sorted = population_melted.sort_values(by=['Country_id', 'year'])
     return population_sorted
 
+# 데이터를 파일로 저장하는 함수
 def save_data(data, filepath):
     data.to_csv(filepath, index=False, quoting=csv.QUOTE_NONNUMERIC, quotechar='"')
 
+# GDP 데이터를 로드, 피벗 해제, 정렬하는 함수
 def load_and_clean_gdp_data(filepath, value_name):
     gdp_data = pd.read_csv(filepath)
     gdp_data_melted = pd.melt(gdp_data, id_vars=['Country Name', 'Country Code', 'Indicator Name'],
@@ -31,12 +40,14 @@ def load_and_clean_gdp_data(filepath, value_name):
     gdp_sorted = gdp_data_melted.sort_values(by=['Country Name', 'Country Code', 'year'])
     return gdp_sorted
 
+# 배출 데이터를 로드 및 클린업하는 함수
 def load_and_clean_emissions_data(filepath):
     data = pd.read_csv(filepath)
     data_filtered = data[data['sector'] != 'LULUCF']
     data_sorted = data_filtered.sort_values(by=['region', 'year'])
     return data_sorted
 
+# 지역 데이터를 인구 데이터와 매핑하는 함수
 def map_region_data(region_data, population_data):
     population_data_unique = population_data.groupby('Country Name').first().reset_index()
     region_mapping = population_data_unique.set_index('Country Code')[['Country Name', 'Country_id']].to_dict(orient='index')
@@ -66,6 +77,7 @@ def get_eu27_value(row, data, column_name, eu27_country_ids, euu_country_id):
     else:
         return None
 
+# 특정 열 값을 여러 행으로 확장하는 함수
 def expand_rows_with_multiple_values(data, column_names):
     expanded_data = []
     for idx, row in data.iterrows():
@@ -78,8 +90,10 @@ def expand_rows_with_multiple_values(data, column_names):
             expanded_data.append(new_row)
     return pd.DataFrame(expanded_data)
 
+# 정책 데이터를 로드하고 클린업하는 함수
 def load_and_clean_policies(filepath, population_data):
     policies_data = pd.read_csv(filepath)
+    # 국가 이름 매핑
     country_name_mapping = {
         'Plurinational State of Bolivia': 'Bolivia',
         'Bolivarian Republic of Venezuela': 'Venezuela, RB',
@@ -114,6 +128,7 @@ def load_and_clean_policies(filepath, population_data):
         else:
             policies_data.at[index, 'Country_id'] = reverse_mapping[row['Country']]
     policies_data['Country_id'] = policies_data['Country_id'].astype(int)
+    # 빈 년도 값 채우기
     years_to_fill = list(range(1948, 1930, -1))
     year_index = 0
     for index, row in policies_data.iterrows():

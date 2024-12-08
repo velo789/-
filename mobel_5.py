@@ -1,4 +1,9 @@
-#mobel_4는 joblib 형식으로 모델을 만들었고 mobel_5는 pickle 형식으로 만들었음
+'''
+기존에는 joblib 형식으로 모델을 만들었으나 pickle 형식으로 바꿨습니다.
+lambda는 pickle 형식은 지원하지만 joblib 형식을 지원할려면 추가 설정이 필요하기에
+기존에 지원하는 형식으로 하기 위해서 pickle 형식으로 구조를 바꿧습니다.
+그리고 정책의 효과를 예측하여 탄소 예측을 하기 위해서 정책 데이터에 탄소 배출량 예측값을 추가했습니다.
+'''
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
