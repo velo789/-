@@ -124,7 +124,8 @@ def load_and_clean_policies(filepath, population_data):
             else:
                 break
     policies_data['Year'] = pd.to_numeric(policies_data['Year'], errors='coerce').astype('Int64')
-    policies_data['Policy_id'] = policies_data['Country_id'].astype(str) + "_" + policies_data['Policy']
+    policies_data = policies_data.sort_values(by='Year', ascending=True).reset_index(drop=True)
+    policies_data['Policy_id'] = policies_data.groupby('Country_id').cumcount() + 1
     policies_data.fillna('N/A', inplace=True)
     if 'Status' in policies_data.columns:
         policies_data.drop(columns=['Status'], inplace=True)
